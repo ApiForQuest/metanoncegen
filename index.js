@@ -6,21 +6,32 @@ const client = new Client({
     intents: [GatewayIntentBits.Guilds]
 });
 
+// Prevent silent crashes
+process.on("unhandledRejection", console.error);
+process.on("uncaughtException", console.error);
+
 client.once(Events.ClientReady, () => {
     console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
 client.on("interactionCreate", async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
-    if (interaction.commandName !== "nonce") return;
-
-    await interaction.deferReply();
-
     try {
-        const appId = interaction.options.getString("app_id");
+        if (!interaction.isChatInputCommand()) return;
+
+        console.log("Command used in:", interaction.guildId ? "SERVER" : "DM");
+
+        if (interaction.commandName !== "nonce") return;
+
+        // Prevent double-handling or stale interactions
+        if (interaction.replied || interaction.deferred) return;
+
+        // MUST be first async action
+        await interaction.deferReply();
+
+        const appId = interaction.options.getString("app_id", true);
 
         if (!appId) {
-            return interaction.editReply("❌ Missing app_id (command not updated properly)");
+            return await interaction.editReply("❌ Missing app_id (command not updated properly)");
         }
 
         console.log("APP ID:", appId);
@@ -41,7 +52,7 @@ client.on("interactionCreate", async (interaction) => {
         const accessToken = authRes.data?.access_token;
 
         if (!accessToken) {
-            return interaction.editReply("❌ No access_token returned");
+            return await interaction.editReply("❌ No access_token returned");
         }
 
         // STEP 2: generate nonce
@@ -56,20 +67,26 @@ client.on("interactionCreate", async (interaction) => {
             }
         );
 
-        return interaction.editReply(
+        return await interaction.editReply(
             "```json\n" +
             JSON.stringify(nonceRes.data, null, 2) +
             "\n```"
         );
 
     } catch (err) {
-        console.error(err);
+        console.error("Interaction Error:", err);
 
-        return interaction.editReply(
-            "❌ Failed:\n```json\n" +
-            JSON.stringify(err.response?.data || { message: err.message }, null, 2) +
-            "\n```"
-        );
+        try {
+            if (interaction.deferred || interaction.replied) {
+                await interaction.editReply(
+                    "❌ Failed:\n```json\n" +
+                    JSON.stringify(err.response?.data || { message: err.message }, null, 2) +
+                    "\n```"
+                );
+            }
+        } catch (e) {
+            console.error("Failed to send error reply:", e);
+        }
     }
 });
 
