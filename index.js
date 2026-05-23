@@ -22,6 +22,8 @@ client.on("interactionCreate", async (interaction) => {
         const appId = interaction.options.getString("app_id", true);
 
         console.log("APP ID:", appId);
+        console.log("GUILD:", interaction.guildId);
+console.log("OPTIONS:", interaction.options.data);
 
         // STEP 1: authenticate application
         const authRes = await axios.post(
