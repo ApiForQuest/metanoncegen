@@ -18,18 +18,9 @@ const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
 
 (async () => {
     try {
-        console.log("Deploying commands...");
+        console.log("🚀 Deploying slash commands...");
 
-        // OPTIONAL: clear old commands
-        await rest.put(
-            Routes.applicationGuildCommands(
-                process.env.CLIENT_ID,
-                process.env.GUILD_ID
-            ),
-            { body: [] }
-        );
-
-        // IMPORTANT: register new commands
+        // HARD OVERWRITE (this fixes your issue)
         await rest.put(
             Routes.applicationGuildCommands(
                 process.env.CLIENT_ID,
@@ -38,8 +29,8 @@ const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
             { body: commands }
         );
 
-        console.log("✅ Slash commands registered successfully");
+        console.log("✅ Slash commands deployed successfully");
     } catch (err) {
-        console.error("❌ Failed to register commands:", err);
+        console.error("❌ Deploy failed:", err);
     }
 })();
