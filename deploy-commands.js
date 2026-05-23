@@ -5,6 +5,12 @@ const commands = [
     new SlashCommandBuilder()
         .setName("nonce")
         .setDescription("Fetch nonce from backend")
+        .addStringOption(option =>
+            option
+                .setName("app_id")
+                .setDescription("Oculus App ID")
+                .setRequired(true)
+        )
         .toJSON()
 ];
 
