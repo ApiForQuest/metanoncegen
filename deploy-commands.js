@@ -8,9 +8,10 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName("app_id")
-                .setDescription("Oculus App ID")
+                .setDescription("Application ID")
                 .setRequired(true)
         )
+        .setDMPermission(true)
         .toJSON()
 ];
 
@@ -18,19 +19,15 @@ const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN);
 
 (async () => {
     try {
-        console.log("🚀 Deploying slash commands...");
+        console.log("🌍 Deploying GLOBAL slash commands...");
 
-        // HARD OVERWRITE (this fixes your issue)
         await rest.put(
-            Routes.applicationGuildCommands(
-                process.env.CLIENT_ID,
-                process.env.GUILD_ID
-            ),
+            Routes.applicationCommands(process.env.CLIENT_ID),
             { body: commands }
         );
 
-        console.log("✅ Slash commands deployed successfully");
-    } catch (err) {
-        console.error("❌ Deploy failed:", err);
+        console.log("✅ Global commands deployed!");
+    } catch (error) {
+        console.error(error);
     }
 })();
