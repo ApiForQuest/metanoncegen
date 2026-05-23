@@ -19,7 +19,7 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.deferReply();
 
         // GET APP ID FROM SLASH COMMAND
-        const appId = interaction.options.getString("app_id");
+        const appId = interaction.options.getString("app_id", true);
 
         // STEP 1: authenticate application
         const authRes = await axios.post(
