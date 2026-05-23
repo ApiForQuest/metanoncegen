@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, Events } = require("discord.js");
 const axios = require("axios");
 require("dotenv").config();
 
@@ -6,24 +6,24 @@ const client = new Client({
     intents: [GatewayIntentBits.Guilds]
 });
 
-client.once("clientReady", () => {
+client.once(Events.ClientReady, () => {
     console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
-
     if (interaction.commandName !== "nonce") return;
 
-    try {
-        await interaction.deferReply();
+    await interaction.deferReply();
 
-        // GET APP ID FROM SLASH COMMAND
-        const appId = interaction.options.getString("app_id", true);
+    try {
+        const appId = interaction.options.getString("app_id");
+
+        if (!appId) {
+            return interaction.editReply("❌ Missing app_id (command not updated properly)");
+        }
 
         console.log("APP ID:", appId);
-        console.log("GUILD:", interaction.guildId);
-console.log("OPTIONS:", interaction.options.data);
 
         // STEP 1: authenticate application
         const authRes = await axios.post(
@@ -56,7 +56,6 @@ console.log("OPTIONS:", interaction.options.data);
             }
         );
 
-        // STEP 3: return result
         return interaction.editReply(
             "```json\n" +
             JSON.stringify(nonceRes.data, null, 2) +
@@ -66,19 +65,11 @@ console.log("OPTIONS:", interaction.options.data);
     } catch (err) {
         console.error(err);
 
-        if (interaction.deferred || interaction.replied) {
-            await interaction.editReply(
-                "❌ Failed:\n```json\n" +
-                JSON.stringify(
-                    err.response?.data || { message: err.message },
-                    null,
-                    2
-                ) +
-                "\n```"
-            );
-        } else {
-            await interaction.reply("❌ Request failed before processing.");
-        }
+        return interaction.editReply(
+            "❌ Failed:\n```json\n" +
+            JSON.stringify(err.response?.data || { message: err.message }, null, 2) +
+            "\n```"
+        );
     }
 });
 
