@@ -21,6 +21,8 @@ client.on("interactionCreate", async (interaction) => {
         // GET APP ID FROM SLASH COMMAND
         const appId = interaction.options.getString("app_id", true);
 
+        console.log("APP ID:", appId);
+
         // STEP 1: authenticate application
         const authRes = await axios.post(
             "https://graph.oculus.com/authenticate_application",
